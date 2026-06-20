@@ -42,28 +42,45 @@ export const TrustManifestSchema = z.object({
 });
 export type TrustManifest = z.infer<typeof TrustManifestSchema>;
 
+/**
+ * Shared entry fields. The URN-format and url-format rules are intentionally NOT
+ * enforced here — they are policy checks applied by catalog-validator, which can
+ * treat them as hard errors (strict, for our own publishing) or advisory warnings
+ * (lenient, for crawling messy third-party manifests, e.g. HF uses `urn:ai:`).
+ */
+const entryFields = {
+  identifier: z.string().min(1),
+  displayName: z.string().min(1),
+  type: z.string().min(1),
+  url: z.string().min(1).optional(),
+  data: z.record(z.unknown()).optional(),
+  description: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  capabilities: z.array(z.string()).optional(),
+  representativeQueries: z.array(z.string()).optional(),
+  version: z.string().optional(),
+  updatedAt: z.string().optional(),
+  metadata: z.record(z.unknown()).optional(),
+} as const;
+
+const urlXorData = (e: { url?: unknown; data?: unknown }): boolean =>
+  (e.url === undefined) !== (e.data === undefined);
+const URL_XOR_MSG = { message: "entry MUST provide exactly one of 'url' or 'data'" };
+
 export const CatalogEntrySchema = z
-  .object({
-    identifier: z.string().regex(URN_PATTERN, {
-      message: 'identifier must match urn:air:<publisher>:<namespace>:<agent-name>',
-    }),
-    displayName: z.string().min(1),
-    type: z.string().min(1),
-    url: z.string().url().optional(),
-    data: z.record(z.unknown()).optional(),
-    description: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    capabilities: z.array(z.string()).optional(),
-    representativeQueries: z.array(z.string()).optional(),
-    version: z.string().optional(),
-    updatedAt: z.string().optional(),
-    metadata: z.record(z.unknown()).optional(),
-    trustManifest: TrustManifestSchema.optional(),
-  })
-  .refine((e) => (e.url === undefined) !== (e.data === undefined), {
-    message: "entry MUST provide exactly one of 'url' or 'data'",
-  });
+  .object({ ...entryFields, trustManifest: TrustManifestSchema.optional() })
+  .refine(urlXorData, URL_XOR_MSG);
 export type CatalogEntry = z.infer<typeof CatalogEntrySchema>;
+
+/**
+ * Maximally permissive entry schema for tolerant ingestion of crawled manifests:
+ * requires only identifier/displayName/type + url-XOR-data, passing trustManifest
+ * through without deep validation. Unusable entries are skipped, not fatal.
+ */
+export const LenientCatalogEntrySchema = z
+  .object({ ...entryFields, trustManifest: z.record(z.unknown()).optional() })
+  .passthrough()
+  .refine(urlXorData, URL_XOR_MSG);
 
 export const HostSchema = z.object({
   displayName: z.string().min(1),

@@ -1,0 +1,13 @@
+{
+  "sources": [
+    { "id": "cookiy-mcp", "url": "catalogs/cookiy-mcp.ai-catalog.json", "label": "Cookiy MCP", "internal": true },
+    { "id": "cookiy-skill", "url": "catalogs/cookiy-skill.ai-catalog.json", "label": "Cookiy Skills", "internal": true },
+    { "id": "cookiy-cli", "url": "catalogs/cookiy-cli.ai-catalog.json", "label": "Cookiy CLI", "internal": true },
+    {
+      "id": "huggingface",
+      "url": "https://huggingface-hf-discover.hf.space/.well-known/ai-catalog.json",
+      "label": "Hugging Face Discover (public)",
+      "internal": false
+    }
+  ]
+}

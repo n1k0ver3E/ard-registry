@@ -1,5 +1,6 @@
 node_modules/
 vendor/.venv/
+.cache/
 dist/
 *.log
 .DS_Store

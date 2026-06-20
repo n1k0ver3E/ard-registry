@@ -22,6 +22,7 @@
     "mcp": "tsx bin/ard-mcp.ts",
     "verify:manifest": "tsx scripts/verify-manifests.ts",
     "verify:registry": "tsx scripts/verify-registry.ts",
+    "verify:crawl": "tsx scripts/verify-crawl.ts",
     "verify": "pnpm typecheck && pnpm test && pnpm verify:manifest && pnpm verify:registry"
   },
   "dependencies": {

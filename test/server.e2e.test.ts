@@ -101,6 +101,15 @@ describe('HTTP registry (Fastify inject)', () => {
     expect(body.entries[0].url).toContain('/search');
   });
 
+  it('GET /sources reports per-source crawl status', async () => {
+    const res = await app.inject({ method: 'GET', url: `${base}/sources` });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.count).toBe(3); // 3 local cookiy catalogs (default source set)
+    expect(body.sources.every((s: { ok: boolean }) => s.ok)).toBe(true);
+    expect(body.sources.map((s: { id: string }) => s.id)).toContain('cookiy-mcp');
+  });
+
   it('unknown route returns 404 NOT_FOUND', async () => {
     const res = await app.inject({ method: 'GET', url: `${base}/nope` });
     expect(res.statusCode).toBe(404);

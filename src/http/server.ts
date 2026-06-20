@@ -8,6 +8,7 @@ import type { FederationService } from '../search/federation.service.js';
 import type { ExploreService } from '../search/explore.service.js';
 import type { AgentsService } from '../search/agents.service.js';
 import type { AICatalogManifest } from '../domain/catalog.schema.js';
+import type { SourceStatus } from '../crawl/crawler.js';
 
 export interface ServerDeps {
   basePath: string;
@@ -17,6 +18,8 @@ export interface ServerDeps {
   agentsService: AgentsService;
   /** This registry's own manifest, served at /.well-known/ai-catalog.json. */
   selfManifest: AICatalogManifest;
+  /** Per-source crawl status for the management/observability endpoint. */
+  crawlStatus: () => SourceStatus[];
 }
 
 /**
@@ -29,6 +32,12 @@ export function buildServer(deps: ServerDeps): FastifyInstance {
   const base = deps.basePath.replace(/\/$/, '');
 
   app.get(`${base}/health`, async () => ({ status: 'ok', entries: deps.entryCount }));
+
+  // Management/observability: per-source crawl status (last crawl, ok, counts).
+  app.get(`${base}/sources`, async () => {
+    const sources = deps.crawlStatus();
+    return { sources, count: sources.length };
+  });
 
   // Self-advertisement: makes this registry itself discoverable / federatable.
   app.get('/.well-known/ai-catalog.json', async (_request, reply) => {

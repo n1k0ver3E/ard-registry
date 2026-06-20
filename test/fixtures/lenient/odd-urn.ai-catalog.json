@@ -1,0 +1,18 @@
+{
+  "specVersion": "1.0",
+  "host": { "displayName": "Odd Publisher", "identifier": "huggingface.co" },
+  "entries": [
+    {
+      "identifier": "urn:ai:huggingface.co:registry:discover",
+      "displayName": "HF Discover Registry (urn:ai, not urn:air)",
+      "type": "application/ai-registry+json",
+      "url": "https://evalstate-hf-discover.hf.space",
+      "tags": ["huggingface", "registry"]
+    },
+    {
+      "identifier": "urn:air:bad.example:x:y",
+      "displayName": "Broken entry (neither url nor data)",
+      "type": "application/mcp-server-card+json"
+    }
+  ]
+}

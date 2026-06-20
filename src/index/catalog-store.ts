@@ -12,6 +12,12 @@ export class CatalogStore {
     for (const e of entries) this.byId.set(e.entry.identifier, e);
   }
 
+  /** Atomically replace the entire index (used after a crawl cycle). */
+  replaceAll(entries: LoadedEntry[]): void {
+    this.byId.clear();
+    this.add(entries);
+  }
+
   all(): LoadedEntry[] {
     return [...this.byId.values()];
   }

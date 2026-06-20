@@ -20,6 +20,7 @@ client  ──POST /search { text, filter }──▶  registry  ──crawls─�
 | `POST /api/search` | ✅ required | natural-language + filter → ranked results (`score` 0–100, `source`); federation-aware |
 | `POST /api/explore` | optional | facet aggregation (counts by `type` / `publisher` / `tags`) |
 | `GET /api/agents` | optional | deterministic, cacheable listing with `orderBy` + pagination |
+| `GET /api/sources` | mgmt | per-source crawl status (last crawl, ok, entry counts) |
 | `GET /.well-known/ai-catalog.json` | self | advertises this registry as an `application/ai-registry+json` resource — it is itself discoverable & federatable |
 
 `score` is **relevance only** — never a trust/safety rating (per spec). Filters compose **AND across keys, OR within values**.
@@ -48,7 +49,8 @@ ranker sits behind an interface so an embedding ranker can replace BM25 without 
 src/
   domain/      zod schemas = single source of truth (catalog + registry REST contract)
   ingest/      manifest-loader (file:// & http, flattens nested sub-catalogs) + catalog-validator
-  index/       catalog-store (dedup by URN) · ranker (Ranker iface → Bm25Ranker) · build-store
+  index/       catalog-store (dedup by URN, atomic replaceAll) · ranker (Ranker iface → Bm25Ranker)
+  crawl/       sources (resolve source set) · crawler (per-source last-good + schedule) · snapshot (persist)
   search/      search.service (local) · federation.service (referrals/auto-merge) · explore · agents · filter · kinds
   discovery/   self-catalog (this registry's own /.well-known manifest)
   mcp/         MCP discovery tools (discover/explore) over a local or remote backend
@@ -56,7 +58,30 @@ src/
   http/        Fastify server — validates input, serializes output, nothing else
   config.ts · main.ts (createApp wires it all)
 catalogs/      test-case data: real Cookiy resources as ARD manifests
-bin/ard-search.ts   natural-language discovery CLI
+bin/ard-search.ts · bin/ard-mcp.ts   CLI + MCP entrypoints
+```
+
+## Crawl sources, scheduling & persistence
+
+The registry indexes a **configured set of sources** (not the open web) — like Artifactory proxies configured
+upstream repos rather than scraping all of npm. Resolution precedence:
+
+1. `ARD_SOURCES` — inline JSON array of sources, else
+2. `ARD_SOURCES_FILE` — a JSON file (see [`sources.json`](sources.json)), else
+3. the local `catalogs/` dir (offline default).
+
+Each source is an `ai-catalog.json` (file path or URL). The crawler keeps each source's **last-good** entry set
+(a briefly-unreachable source doesn't drop out), atomically swaps the union into the store, and persists a
+snapshot (`ARD_SNAPSHOT`) so a restart serves last-known data instantly. A scheduler re-crawls every
+`ARD_CRAWL_INTERVAL_MS` (default 15 min); `GET /api/sources` shows per-source status.
+
+**Tolerant ingestion (Postel's law):** our own catalogs are validated strictly (conformance gate), but crawled
+third-party manifests are ingested leniently — e.g. Hugging Face's real manifest uses `urn:ai:` instead of the
+spec's `urn:air:`, so non-conforming ids/types become warnings, unusable entries are skipped, and the rest are
+still indexed.
+
+```bash
+pnpm verify:crawl   # live: crawls cookiy catalogs + HF's PUBLIC manifest, proves HF resources are discoverable
 ```
 
 ## Test case: Cookiy (real data)
@@ -84,13 +109,13 @@ $ pnpm discover "recruit participants and run interviews" --federation referrals
 Verified against the **official ard-spec conformance CLI** (vendored under `vendor/`), plus unit + HTTP e2e tests:
 
 ```bash
-pnpm verify           # typecheck + 29 tests + both conformance suites
+pnpm verify           # typecheck + 36 tests + both conformance suites
 pnpm verify:manifest  # conformance-test manifest catalogs/*.json   → 3/3 PASS
 pnpm verify:registry  # boots the server, conformance-test registry → PASS, plus
                       # conformance-test manifest on the LIVE /.well-known URL → PASS
 ```
 
-Current status: **typecheck clean · 29/29 tests · 3/3 manifests PASS · registry PASS · live self-manifest PASS (0 errors)**.
+Current status: **typecheck clean · 36/36 tests · 3/3 manifests PASS · registry PASS · live self-manifest PASS (0 errors)**.
 Tests include live federation across two real registries (real HTTP auto-merge) and a real MCP-protocol
 round-trip (SDK client ↔ our server).
 
@@ -117,4 +142,6 @@ claude mcp add ard-registry -- pnpm --dir /path/to/ard-registry mcp
 - ✅ Live federation (`federation: auto`) that fetches & merges upstream registry results
 - ✅ Serve our own `/.well-known/ai-catalog.json` so this registry is itself discoverable
 - ⬜ Embedding-based `Ranker` (drop-in behind the existing interface) alongside BM25
-- ⬜ Persistent index + periodic re-crawl of remote catalogs (currently crawl-on-boot)
+- ✅ Configurable crawl sources + scheduled re-crawl + snapshot persistence + tolerant ingestion
+- ⬜ `verify` — actually validate trustManifest/attestations (the "other half" of discovery)
+- ⬜ Embedding/hybrid ranker; richer management (catalog CRUD, RBAC, audit)
