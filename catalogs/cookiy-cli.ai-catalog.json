@@ -1,0 +1,38 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Cookiy AI",
+    "identifier": "did:web:cookiy.ai"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:cookiy.ai:cli:cookiy",
+      "displayName": "Cookiy CLI",
+      "type": "application/x-cli+json",
+      "url": "https://api.cookiy.ai/cli/cookiy.json",
+      "description": "Command-line client over the Cookiy v1 public API — the same study/recruit/report/survey surface as the MCP server, for terminal and CI/CD use. Note: a non-standard discovery media type; the ai-catalog spec permits any IANA media type, so this entry is intentionally an extension (conformance flags it as an advisory warning, not an error).",
+      "capabilities": [
+        "study create",
+        "study status",
+        "recruit create",
+        "report generate",
+        "survey create"
+      ],
+      "representativeQueries": [
+        "run a Cookiy study from the terminal",
+        "automate research studies in CI/CD",
+        "command line tool to create and track studies"
+      ],
+      "tags": ["cli", "automation", "ci-cd", "cookiy"],
+      "version": "1.0.0",
+      "metadata": {
+        "install": "npm i -g @cookiy/cli",
+        "transport": "stdio"
+      },
+      "trustManifest": {
+        "identity": "did:web:cookiy.ai",
+        "identityType": "did"
+      }
+    }
+  ]
+}

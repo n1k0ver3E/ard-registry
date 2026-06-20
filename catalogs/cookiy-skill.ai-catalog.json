@@ -1,0 +1,62 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Cookiy AI",
+    "identifier": "did:web:cookiy.ai",
+    "documentationUrl": "https://github.com/cookiy-ai/user-research-skill"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:cookiy.ai:skill:user-research",
+      "displayName": "User Research (End to End) Skill",
+      "type": "text/markdown; profile=\"urn:air:agent-skills\"",
+      "url": "https://raw.githubusercontent.com/cookiy-ai/user-research-skill/main/SKILL.md",
+      "description": "An end-to-end user-research Agent Skill: plan qualitative studies, run AI-moderated interviews (real or synthetic) via Cookiy, design quantitative surveys, and synthesize transcripts into evidence-backed reports — all via natural language.",
+      "capabilities": [
+        "plan-a-study",
+        "screening-questionnaire",
+        "discussion-guide",
+        "synthesize-report",
+        "run-with-cookiy"
+      ],
+      "representativeQueries": [
+        "help me plan a user research study and write a discussion guide",
+        "I have interview transcripts, turn them into a report",
+        "run AI-moderated interviews with synthetic users",
+        "design and distribute a multilingual survey"
+      ],
+      "tags": ["skill", "user-research", "qualitative", "quantitative", "cookiy"],
+      "version": "1.1.3",
+      "trustManifest": {
+        "identity": "did:web:cookiy.ai",
+        "identityType": "did"
+      }
+    },
+    {
+      "identifier": "urn:air:cookiy.ai:skill:qualitative-research-planner",
+      "displayName": "Qualitative Research Planner (sub-skill)",
+      "type": "text/markdown; profile=\"urn:air:agent-skills\"",
+      "url": "https://raw.githubusercontent.com/cookiy-ai/user-research-skill/main/references/qualitative-research-planner/qualitative-research-planner.md",
+      "description": "Produce a research plan, screening questionnaire, and interview/discussion guide for a qualitative study.",
+      "representativeQueries": [
+        "write a screening questionnaire for a qualitative study",
+        "draft an interview guide for discovery research"
+      ],
+      "tags": ["skill", "planning", "discussion-guide", "qualitative"],
+      "version": "1.1.3"
+    },
+    {
+      "identifier": "urn:air:cookiy.ai:skill:synthesize-research-report",
+      "displayName": "Synthesize Research Report (sub-skill)",
+      "type": "text/markdown; profile=\"urn:air:agent-skills\"",
+      "url": "https://raw.githubusercontent.com/cookiy-ai/user-research-skill/main/references/synthesize-research-report/synthesize-research-report.md",
+      "description": "Turn raw interview transcripts and notes into an evidence-backed report with a codebook, themes, and personas.",
+      "representativeQueries": [
+        "synthesize interview transcripts into themes and personas",
+        "build a codebook and evidence-backed findings from notes"
+      ],
+      "tags": ["skill", "synthesis", "thematic-analysis", "qualitative"],
+      "version": "1.1.3"
+    }
+  ]
+}

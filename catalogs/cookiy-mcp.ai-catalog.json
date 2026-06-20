@@ -1,0 +1,183 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Cookiy AI",
+    "identifier": "did:web:cookiy.ai",
+    "documentationUrl": "https://cookiy.ai",
+    "trustManifest": {
+      "identity": "spiffe://cookiy.ai/root",
+      "identityType": "spiffe"
+    }
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:cookiy.ai:mcp:study-and-guide",
+      "displayName": "Cookiy Study & Discussion-Guide MCP",
+      "type": "application/mcp-server-card+json",
+      "url": "https://api.cookiy.ai/mcp/study-and-guide.json",
+      "description": "Create and track user-research studies and generate/edit AI discussion (interview) guides. The study lifecycle entrypoint for the Cookiy v1 public API.",
+      "capabilities": [
+        "cookiy_study_create",
+        "cookiy_study_get",
+        "cookiy_study_list",
+        "cookiy_activity_get",
+        "cookiy_guide_get",
+        "cookiy_guide_patch",
+        "cookiy_guide_status",
+        "cookiy_media_upload",
+        "cookiy_user_info_get"
+      ],
+      "representativeQueries": [
+        "create a new user research study from a research goal",
+        "generate and edit an interview discussion guide",
+        "check how my study is progressing",
+        "list my existing studies and their status"
+      ],
+      "tags": ["user-research", "study", "discussion-guide", "qualitative"],
+      "version": "1.0.0",
+      "trustManifest": {
+        "identity": "spiffe://cookiy.ai/mcp/study",
+        "identityType": "spiffe",
+        "attestations": [
+          {
+            "type": "SOC2-Type2",
+            "uri": "https://trust.cookiy.ai/soc2.pdf",
+            "mediaType": "application/pdf"
+          }
+        ]
+      }
+    },
+    {
+      "identifier": "urn:air:cookiy.ai:mcp:recruit-and-interview",
+      "displayName": "Cookiy Recruit & Interview MCP",
+      "type": "application/mcp-server-card+json",
+      "url": "https://api.cookiy.ai/mcp/recruit-and-interview.json",
+      "description": "Recruit real participants into a study, run AI-moderated interviews, generate synthetic-user interviews, and list or play back interview recordings.",
+      "capabilities": [
+        "cookiy_recruit_create",
+        "cookiy_recruit_status",
+        "cookiy_interview_list",
+        "cookiy_interview_playback_get",
+        "cookiy_simulated_interview_generate",
+        "cookiy_simulated_interview_status"
+      ],
+      "representativeQueries": [
+        "recruit participants for my study",
+        "run AI-moderated interviews with real users",
+        "generate synthetic user interviews to pilot a guide",
+        "list interviews and get playback links"
+      ],
+      "tags": ["recruit", "interview", "synthetic-users", "panel", "qualitative"],
+      "version": "1.0.0",
+      "trustManifest": {
+        "identity": "spiffe://cookiy.ai/mcp/recruit",
+        "identityType": "spiffe",
+        "attestations": [
+          {
+            "type": "SOC2-Type2",
+            "uri": "https://trust.cookiy.ai/soc2.pdf",
+            "mediaType": "application/pdf"
+          }
+        ]
+      }
+    },
+    {
+      "identifier": "urn:air:cookiy.ai:mcp:report-and-insights",
+      "displayName": "Cookiy Report & Insights MCP",
+      "type": "application/mcp-server-card+json",
+      "url": "https://api.cookiy.ai/mcp/report-and-insights.json",
+      "description": "Generate evidence-backed research reports from completed interviews, poll report status, fetch report content, and mint shareable report/insight links.",
+      "capabilities": [
+        "cookiy_report_generate",
+        "cookiy_report_status",
+        "cookiy_report_content_get",
+        "cookiy_report_share_link_get",
+        "cookiy_insights_share_link_get"
+      ],
+      "representativeQueries": [
+        "synthesize interviews into a research report",
+        "is my report ready and what does it contain",
+        "get a shareable link to the insights report"
+      ],
+      "tags": ["report", "synthesis", "insights", "qualitative"],
+      "version": "1.0.0",
+      "trustManifest": {
+        "identity": "spiffe://cookiy.ai/mcp/report",
+        "identityType": "spiffe",
+        "attestations": [
+          {
+            "type": "SOC2-Type2",
+            "uri": "https://trust.cookiy.ai/soc2.pdf",
+            "mediaType": "application/pdf"
+          }
+        ]
+      }
+    },
+    {
+      "identifier": "urn:air:cookiy.ai:mcp:quant-survey",
+      "displayName": "Cookiy Quantitative Survey MCP",
+      "type": "application/mcp-server-card+json",
+      "url": "https://api.cookiy.ai/mcp/quant-survey.json",
+      "description": "Design, distribute and analyze multilingual quantitative surveys with conditional logic: create/patch surveys, list and inspect them, pull reports and raw responses, and mint admin links.",
+      "capabilities": [
+        "cookiy_quant_survey_create",
+        "cookiy_quant_survey_patch",
+        "cookiy_quant_survey_list",
+        "cookiy_quant_survey_detail",
+        "cookiy_quant_survey_report",
+        "cookiy_quant_survey_raw_responses",
+        "cookiy_quant_survey_admin_link",
+        "cookiy_quant_status"
+      ],
+      "representativeQueries": [
+        "design a multilingual quantitative survey with skip logic",
+        "distribute a survey and collect responses",
+        "pull the survey report and raw response data"
+      ],
+      "tags": ["survey", "quantitative", "questionnaire", "analytics"],
+      "version": "1.0.0",
+      "trustManifest": {
+        "identity": "spiffe://cookiy.ai/mcp/quant",
+        "identityType": "spiffe",
+        "attestations": [
+          {
+            "type": "SOC2-Type2",
+            "uri": "https://trust.cookiy.ai/soc2.pdf",
+            "mediaType": "application/pdf"
+          }
+        ]
+      }
+    },
+    {
+      "identifier": "urn:air:cookiy.ai:mcp:billing",
+      "displayName": "Cookiy Billing & Wallet MCP",
+      "type": "application/mcp-server-card+json",
+      "url": "https://api.cookiy.ai/mcp/billing.json",
+      "description": "Wallet balance, price table, cash checkout for top-ups, and transaction history backing paid study/recruit/report actions.",
+      "capabilities": [
+        "cookiy_billing_cash_checkout",
+        "cookiy_billing_price_table",
+        "cookiy_billing_transactions",
+        "cookiy_balance_get"
+      ],
+      "representativeQueries": [
+        "check my wallet balance and top up",
+        "show the price table before creating a study",
+        "list my billing transactions"
+      ],
+      "tags": ["billing", "wallet", "payment"],
+      "version": "1.0.0",
+      "trustManifest": {
+        "identity": "spiffe://cookiy.ai/mcp/billing",
+        "identityType": "spiffe",
+        "attestations": [
+          {
+            "type": "SOC2-Type2",
+            "uri": "https://trust.cookiy.ai/soc2.pdf",
+            "mediaType": "application/pdf"
+          }
+        ]
+      }
+    }
+  ]
+}
