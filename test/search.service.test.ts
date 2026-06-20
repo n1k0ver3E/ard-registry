@@ -7,15 +7,9 @@ import { buildStore, tail } from './helpers.js';
 import type { CatalogStore } from '../src/index/catalog-store.js';
 
 const SELF = 'http://localhost:9010/api';
-const UPSTREAM = {
-  identifier: 'urn:air:nlweb.ai:registry:public',
-  displayName: 'Public Agent Finder',
-  type: 'application/ai-registry+json',
-  url: 'https://finder.nlweb.ai/search',
-};
 
 function makeService(store: CatalogStore) {
-  return new SearchService(store, new Bm25Ranker(), { selfUrl: SELF, upstreams: [UPSTREAM] });
+  return new SearchService(store, new Bm25Ranker(), { selfUrl: SELF });
 }
 const req = (body: unknown) => SearchRequestSchema.parse(body);
 
@@ -75,14 +69,5 @@ describe('SearchService', () => {
       .map((r) => r.identifier)
       .filter((id) => p2.results.some((r) => r.identifier === id));
     expect(overlap).toHaveLength(0); // distinct pages
-  });
-
-  it('attaches referrals only when federation !== none', () => {
-    const svc = makeService(store);
-    const text = 'run interviews';
-    expect(svc.search(req({ query: { text }, federation: 'none' })).referrals).toBeUndefined();
-    expect(svc.search(req({ query: { text }, federation: 'referrals' })).referrals).toEqual([
-      UPSTREAM,
-    ]);
   });
 });

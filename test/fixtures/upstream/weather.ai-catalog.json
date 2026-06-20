@@ -1,0 +1,22 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Peer Weather Org",
+    "identifier": "did:web:peer.example"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:peer.example:mcp:weather",
+      "displayName": "Weather Telemetry MCP",
+      "type": "application/mcp-server-card+json",
+      "url": "https://api.peer.example/mcp/weather.json",
+      "description": "Live weather telemetry: current conditions and multi-day forecasts.",
+      "capabilities": ["WeatherTool", "ForecastTool"],
+      "representativeQueries": [
+        "what is the weather forecast for tomorrow",
+        "current wind speed and temperature"
+      ],
+      "tags": ["weather", "forecast", "telemetry"]
+    }
+  ]
+}

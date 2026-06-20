@@ -4,16 +4,19 @@ import {
   ExploreRequestSchema,
   SearchRequestSchema,
 } from '../domain/registry.schema.js';
-import type { SearchService } from '../search/search.service.js';
+import type { FederationService } from '../search/federation.service.js';
 import type { ExploreService } from '../search/explore.service.js';
 import type { AgentsService } from '../search/agents.service.js';
+import type { AICatalogManifest } from '../domain/catalog.schema.js';
 
 export interface ServerDeps {
   basePath: string;
   entryCount: number;
-  searchService: SearchService;
+  federationService: FederationService;
   exploreService: ExploreService;
   agentsService: AgentsService;
+  /** This registry's own manifest, served at /.well-known/ai-catalog.json. */
+  selfManifest: AICatalogManifest;
 }
 
 /**
@@ -27,7 +30,13 @@ export function buildServer(deps: ServerDeps): FastifyInstance {
 
   app.get(`${base}/health`, async () => ({ status: 'ok', entries: deps.entryCount }));
 
-  // POST /search — mandated discovery endpoint.
+  // Self-advertisement: makes this registry itself discoverable / federatable.
+  app.get('/.well-known/ai-catalog.json', async (_request, reply) => {
+    reply.header('content-type', 'application/json');
+    return deps.selfManifest;
+  });
+
+  // POST /search — mandated discovery endpoint (federation-aware).
   app.post(`${base}/search`, async (request, reply) => {
     const parsed = SearchRequestSchema.safeParse(request.body);
     if (!parsed.success) {
@@ -35,7 +44,7 @@ export function buildServer(deps: ServerDeps): FastifyInstance {
         .code(400)
         .send({ errorCode: 'INVALID_ARGUMENT', message: parsed.error.message });
     }
-    return deps.searchService.search(parsed.data);
+    return deps.federationService.search(parsed.data);
   });
 
   // POST /explore — optional facet introspection.

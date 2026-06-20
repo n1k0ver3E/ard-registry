@@ -3,6 +3,7 @@ import { loadConfig } from '../src/config.js';
 import { buildStoreFromDir } from '../src/index/build-store.js';
 import { Bm25Ranker } from '../src/index/ranker.js';
 import { SearchService } from '../src/search/search.service.js';
+import { FederationService } from '../src/search/federation.service.js';
 import { SearchRequestSchema, type SearchResponse } from '../src/domain/registry.schema.js';
 
 const KIND_TO_TYPE: Record<string, string> = {
@@ -57,11 +58,12 @@ async function runSearch(args: Args): Promise<SearchResponse> {
 
   const config = loadConfig();
   const store = await buildStoreFromDir(config.catalogDir);
-  const service = new SearchService(store, new Bm25Ranker(), {
+  const search = new SearchService(store, new Bm25Ranker(), { selfUrl: config.selfUrl });
+  const federation = new FederationService(search, {
     selfUrl: config.selfUrl,
     upstreams: config.upstreams,
   });
-  return service.search(req);
+  return federation.search(req);
 }
 
 function render(res: SearchResponse, args: Args): void {

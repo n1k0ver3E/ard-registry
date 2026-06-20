@@ -18,13 +18,24 @@ async function main(): Promise<void> {
   console.log(`\nBooted ard-registry at ${base} (${store.size} entries). Probing...\n`);
 
   loadConfig(env); // validate config resolves
-  const { ok, stdout } = await runConformanceAsync('registry', base);
-  process.stdout.write(stdout);
+  const registry = await runConformanceAsync('registry', base);
+  process.stdout.write(registry.stdout);
+
+  // Also conformance-check the live self-published well-known manifest.
+  const wellKnown = `http://${host}:${port}/.well-known/ai-catalog.json`;
+  console.log(`\nProbing self-manifest at ${wellKnown} ...`);
+  const manifest = await runConformanceAsync('manifest', wellKnown);
+  process.stdout.write(manifest.stdout);
 
   await app.close();
 
+  const ok = registry.ok && manifest.ok;
   console.log('\n' + '='.repeat(60));
-  console.log(ok ? '✅ REGISTRY CONFORMANT (exit 0)' : '❌ REGISTRY FAILED CONFORMANCE');
+  console.log(
+    ok
+      ? '✅ REGISTRY + SELF-MANIFEST CONFORMANT (exit 0)'
+      : '❌ CONFORMANCE FAILED (registry or self-manifest)',
+  );
   process.exit(ok ? 0 : 1);
 }
 

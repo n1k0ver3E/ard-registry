@@ -90,6 +90,17 @@ describe('HTTP registry (Fastify inject)', () => {
     expect(page.json().pageToken).toBeTruthy();
   });
 
+  it('serves a self-manifest at /.well-known/ai-catalog.json', async () => {
+    const res = await app.inject({ method: 'GET', url: '/.well-known/ai-catalog.json' });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.specVersion).toBe('1.0');
+    expect(body.entries).toHaveLength(1);
+    expect(body.entries[0].type).toBe('application/ai-registry+json');
+    expect(body.entries[0].identifier).toMatch(/^urn:air:[^:]+:registry:search$/);
+    expect(body.entries[0].url).toContain('/search');
+  });
+
   it('unknown route returns 404 NOT_FOUND', async () => {
     const res = await app.inject({ method: 'GET', url: `${base}/nope` });
     expect(res.statusCode).toBe(404);

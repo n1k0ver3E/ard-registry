@@ -1,7 +1,6 @@
 import type { CatalogStore } from '../index/catalog-store.js';
 import type { Ranker } from '../index/ranker.js';
 import type {
-  Referral,
   SearchRequest,
   SearchResponse,
   SearchResultItem,
@@ -11,8 +10,6 @@ import { matchesFilter } from './filter.js';
 export interface SearchServiceConfig {
   /** Absolute base URL of this registry; emitted as `source` on each result. */
   selfUrl: string;
-  /** Optional upstream registries returned as referrals when federation !== 'none'. */
-  upstreams?: Referral[];
 }
 
 function encodeToken(offset: number): string {
@@ -26,8 +23,9 @@ function decodeToken(token: string | undefined): number {
 }
 
 /**
- * POST /search business logic: filter -> rank -> paginate -> attach referrals.
- * Transport-agnostic; the HTTP layer only validates input and serializes output.
+ * Local POST /search business logic: filter -> rank -> paginate. Federation
+ * (referrals / auto-merge) is layered on top by FederationService, keeping this
+ * service single-responsibility (local index only).
  */
 export class SearchService {
   constructor(
@@ -57,10 +55,6 @@ export class SearchService {
       source: this.config.selfUrl,
     }));
 
-    const response: SearchResponse = { results, pageToken: nextToken };
-    if (req.federation !== 'none' && this.config.upstreams?.length) {
-      response.referrals = this.config.upstreams;
-    }
-    return response;
+    return { results, pageToken: nextToken };
   }
 }

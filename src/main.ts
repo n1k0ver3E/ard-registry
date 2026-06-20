@@ -2,9 +2,11 @@ import { loadConfig } from './config.js';
 import { buildStoreFromDir } from './index/build-store.js';
 import { Bm25Ranker } from './index/ranker.js';
 import { SearchService } from './search/search.service.js';
+import { FederationService } from './search/federation.service.js';
 import { ExploreService } from './search/explore.service.js';
 import { AgentsService } from './search/agents.service.js';
 import { buildServer } from './http/server.js';
+import { buildSelfCatalog } from './discovery/self-catalog.js';
 
 /** Wire config -> store -> services -> server. Exported for tests (no listen). */
 export async function createApp(env = process.env) {
@@ -12,19 +14,26 @@ export async function createApp(env = process.env) {
   const store = await buildStoreFromDir(config.catalogDir);
   const ranker = new Bm25Ranker();
 
-  const searchService = new SearchService(store, ranker, {
+  const searchService = new SearchService(store, ranker, { selfUrl: config.selfUrl });
+  const federationService = new FederationService(searchService, {
     selfUrl: config.selfUrl,
     upstreams: config.upstreams,
   });
   const exploreService = new ExploreService(store, ranker);
   const agentsService = new AgentsService(store, config.selfUrl);
+  const selfManifest = buildSelfCatalog({
+    publisher: config.publisher,
+    selfUrl: config.selfUrl,
+    entryCount: store.size,
+  });
 
   const app = buildServer({
     basePath: config.basePath,
     entryCount: store.size,
-    searchService,
+    federationService,
     exploreService,
     agentsService,
+    selfManifest,
   });
   return { app, config, store };
 }

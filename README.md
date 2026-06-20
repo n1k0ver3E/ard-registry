@@ -17,9 +17,10 @@ client  ──POST /search { text, filter }──▶  registry  ──crawls─�
 
 | Endpoint | Required | Purpose |
 |---|---|---|
-| `POST /api/search` | ✅ required | natural-language + filter → ranked results (`score` 0–100, `source`) |
+| `POST /api/search` | ✅ required | natural-language + filter → ranked results (`score` 0–100, `source`); federation-aware |
 | `POST /api/explore` | optional | facet aggregation (counts by `type` / `publisher` / `tags`) |
 | `GET /api/agents` | optional | deterministic, cacheable listing with `orderBy` + pagination |
+| `GET /.well-known/ai-catalog.json` | self | advertises this registry as an `application/ai-registry+json` resource — it is itself discoverable & federatable |
 
 `score` is **relevance only** — never a trust/safety rating (per spec). Filters compose **AND across keys, OR within values**.
 `federation: referrals` returns pointers to upstream registries.
@@ -34,7 +35,8 @@ src/
   domain/      zod schemas = single source of truth (catalog + registry REST contract)
   ingest/      manifest-loader (file:// & http, flattens nested sub-catalogs) + catalog-validator
   index/       catalog-store (dedup by URN) · ranker (Ranker iface → Bm25Ranker) · build-store
-  search/      search.service · explore.service · agents.service · filter   (pure logic)
+  search/      search.service (local) · federation.service (referrals/auto-merge) · explore · agents · filter
+  discovery/   self-catalog (this registry's own /.well-known manifest)
   http/        Fastify server — validates input, serializes output, nothing else
   config.ts · main.ts (createApp wires it all)
 catalogs/      test-case data: real Cookiy resources as ARD manifests
@@ -63,12 +65,14 @@ $ pnpm search "recruit participants and run interviews" --federation referrals
 Verified against the **official ard-spec conformance CLI** (vendored under `vendor/`), plus unit + HTTP e2e tests:
 
 ```bash
-pnpm verify           # typecheck + 18 tests + both conformance suites
-pnpm verify:manifest  # conformance-test manifest catalogs/*.json  → 3/3 PASS
-pnpm verify:registry  # boots the server, conformance-test registry → PASS (exit 0)
+pnpm verify           # typecheck + 25 tests + both conformance suites
+pnpm verify:manifest  # conformance-test manifest catalogs/*.json   → 3/3 PASS
+pnpm verify:registry  # boots the server, conformance-test registry → PASS, plus
+                      # conformance-test manifest on the LIVE /.well-known URL → PASS
 ```
 
-Current status: **typecheck clean · 18/18 tests · 3/3 manifests PASS · registry PASS (0 errors)**.
+Current status: **typecheck clean · 25/25 tests · 3/3 manifests PASS · registry PASS · live self-manifest PASS (0 errors)**.
+Tests include live federation across two real registries (real HTTP auto-merge).
 
 > Note: the CLI catalog uses a non-standard media type (`application/x-cli+json`); the spec permits any IANA
 > media type, so conformance flags it as one advisory **warning**, not an error.
@@ -83,6 +87,7 @@ pnpm search "run AI-moderated interviews and synthesize a report"
 
 ## Roadmap
 
-- Embedding-based `Ranker` (drop-in behind the existing interface) alongside BM25
-- Live federation (`federation: auto`) that fetches & merges upstream registry results
-- Serve our own `/.well-known/ai-catalog.json` so this registry is itself discoverable
+- ✅ Live federation (`federation: auto`) that fetches & merges upstream registry results
+- ✅ Serve our own `/.well-known/ai-catalog.json` so this registry is itself discoverable
+- ⬜ Embedding-based `Ranker` (drop-in behind the existing interface) alongside BM25
+- ⬜ Persistent index + periodic re-crawl of remote catalogs (currently crawl-on-boot)
