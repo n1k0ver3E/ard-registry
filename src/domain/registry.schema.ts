@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CatalogEntrySchema } from './catalog.schema.js';
+import { CatalogEntrySchema, type CatalogEntry } from './catalog.schema.js';
 
 /**
  * Registry REST contract (ard-spec v0.9): POST /search, POST /explore, GET /agents.
@@ -71,8 +71,18 @@ export interface ExploreResponse {
   facets: Record<string, { buckets: FacetBucket[]; otherCount: number }>;
 }
 
+/** /agents item: a catalog entry annotated with the registry it came from (no score — listing is unranked). */
+export type AgentListing = CatalogEntry & { source: string };
+
 export interface AgentsListResponse {
-  items: SearchResultItem[];
+  items: AgentListing[];
   total: number;
   pageToken: string | null;
 }
+
+export const AgentsQuerySchema = z.object({
+  orderBy: z.string().optional(),
+  pageSize: z.coerce.number().int().positive().max(100).default(20),
+  pageToken: z.string().optional(),
+});
+export type AgentsQuery = z.infer<typeof AgentsQuerySchema>;

@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
@@ -23,11 +23,34 @@ export interface ConformanceRun {
   stdout: string;
 }
 
-/** Run `conformance-test <mode> <target>` and return PASS/FAIL by exit code. */
+/**
+ * Run `conformance-test <mode> <target>` synchronously. Use for `manifest` mode only.
+ * NOT for `registry`: spawnSync blocks the Node event loop, so an in-process server
+ * under test could not answer the probe — use runConformanceAsync there.
+ */
 export function runConformance(mode: 'manifest' | 'registry', target: string): ConformanceRun {
   const res = spawnSync(pythonBin(), [CONFORMANCE_CLI, mode, target], {
     encoding: 'utf8',
   });
   const stdout = (res.stdout ?? '') + (res.stderr ?? '');
   return { ok: res.status === 0, exitCode: res.status ?? -1, stdout };
+}
+
+/**
+ * Async variant: spawns the probe without blocking the event loop, so an in-process
+ * Fastify server can serve the conformance requests concurrently.
+ */
+export function runConformanceAsync(
+  mode: 'manifest' | 'registry',
+  target: string,
+): Promise<ConformanceRun> {
+  return new Promise((resolvePromise) => {
+    const child = spawn(pythonBin(), [CONFORMANCE_CLI, mode, target]);
+    let out = '';
+    child.stdout.on('data', (d) => (out += d.toString()));
+    child.stderr.on('data', (d) => (out += d.toString()));
+    child.on('close', (code) => {
+      resolvePromise({ ok: code === 0, exitCode: code ?? -1, stdout: out });
+    });
+  });
 }
