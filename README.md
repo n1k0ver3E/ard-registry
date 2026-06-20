@@ -25,6 +25,20 @@ client  ──POST /search { text, filter }──▶  registry  ──crawls─�
 `score` is **relevance only** — never a trust/safety rating (per spec). Filters compose **AND across keys, OR within values**.
 `federation: referrals` returns pointers to upstream registries.
 
+### Three consumption surfaces
+
+Like Hugging Face's Discover Tool, the same discovery engine is exposed three ways — pick whichever fits the client:
+
+| Surface | How | Use from |
+|---|---|---|
+| **REST** | `POST /api/search` · `/api/explore` | any HTTP client |
+| **CLI** | `pnpm discover "<query>"` | terminal, CI |
+| **MCP** | `pnpm mcp` (stdio server, tools `discover` + `explore`) | Claude Code/Desktop, Cursor, any MCP agent |
+
+The MCP server is how an **LLM agent** actually uses this layer: it preloads exactly one `discover` tool and finds
+everything else at runtime. Runs in-process over the local catalogs by default; set `ARD_REGISTRY_URL` to proxy a
+running registry instead.
+
 ## Architecture
 
 Concerns are split into small, single-responsibility modules; business logic is transport-agnostic and the
@@ -35,8 +49,10 @@ src/
   domain/      zod schemas = single source of truth (catalog + registry REST contract)
   ingest/      manifest-loader (file:// & http, flattens nested sub-catalogs) + catalog-validator
   index/       catalog-store (dedup by URN) · ranker (Ranker iface → Bm25Ranker) · build-store
-  search/      search.service (local) · federation.service (referrals/auto-merge) · explore · agents · filter
+  search/      search.service (local) · federation.service (referrals/auto-merge) · explore · agents · filter · kinds
   discovery/   self-catalog (this registry's own /.well-known manifest)
+  mcp/         MCP discovery tools (discover/explore) over a local or remote backend
+  services.ts  createServices = the one composition root reused by HTTP, CLI, MCP
   http/        Fastify server — validates input, serializes output, nothing else
   config.ts · main.ts (createApp wires it all)
 catalogs/      test-case data: real Cookiy resources as ARD manifests
@@ -68,14 +84,15 @@ $ pnpm discover "recruit participants and run interviews" --federation referrals
 Verified against the **official ard-spec conformance CLI** (vendored under `vendor/`), plus unit + HTTP e2e tests:
 
 ```bash
-pnpm verify           # typecheck + 25 tests + both conformance suites
+pnpm verify           # typecheck + 29 tests + both conformance suites
 pnpm verify:manifest  # conformance-test manifest catalogs/*.json   → 3/3 PASS
 pnpm verify:registry  # boots the server, conformance-test registry → PASS, plus
                       # conformance-test manifest on the LIVE /.well-known URL → PASS
 ```
 
-Current status: **typecheck clean · 25/25 tests · 3/3 manifests PASS · registry PASS · live self-manifest PASS (0 errors)**.
-Tests include live federation across two real registries (real HTTP auto-merge).
+Current status: **typecheck clean · 29/29 tests · 3/3 manifests PASS · registry PASS · live self-manifest PASS (0 errors)**.
+Tests include live federation across two real registries (real HTTP auto-merge) and a real MCP-protocol
+round-trip (SDK client ↔ our server).
 
 > Note: the CLI catalog uses a non-standard media type (`application/x-cli+json`); the spec permits any IANA
 > media type, so conformance flags it as one advisory **warning**, not an error.
@@ -84,8 +101,15 @@ Tests include live federation across two real registries (real HTTP auto-merge).
 
 ```bash
 pnpm install
-pnpm start                         # registry on http://localhost:9010/api
-pnpm discover "run AI-moderated interviews and synthesize a report"   # in-process CLI search
+pnpm start                         # REST registry on http://localhost:9010/api
+pnpm discover "run AI-moderated interviews and synthesize a report"   # CLI search
+pnpm mcp                           # MCP server over stdio (discover/explore tools)
+```
+
+Add it to an MCP client (e.g. Claude Code) so an agent can discover at runtime:
+
+```bash
+claude mcp add ard-registry -- pnpm --dir /path/to/ard-registry mcp
 ```
 
 ## Roadmap

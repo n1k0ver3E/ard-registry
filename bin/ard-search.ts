@@ -1,17 +1,7 @@
 #!/usr/bin/env tsx
-import { loadConfig } from '../src/config.js';
-import { buildStoreFromDir } from '../src/index/build-store.js';
-import { Bm25Ranker } from '../src/index/ranker.js';
-import { SearchService } from '../src/search/search.service.js';
-import { FederationService } from '../src/search/federation.service.js';
+import { createServices } from '../src/services.js';
+import { kindFilter } from '../src/search/kinds.js';
 import { SearchRequestSchema, type SearchResponse } from '../src/domain/registry.schema.js';
-
-const KIND_TO_TYPE: Record<string, string> = {
-  mcp: 'application/mcp-server-card+json',
-  skill: 'text/markdown; profile="urn:air:agent-skills"',
-  cli: 'application/x-cli+json',
-  agent: 'application/a2a-agent-card+json',
-};
 
 interface Args {
   query: string;
@@ -39,7 +29,7 @@ function parseArgs(argv: string[]): Args {
 }
 
 async function runSearch(args: Args): Promise<SearchResponse> {
-  const filter = args.kind && KIND_TO_TYPE[args.kind] ? { type: [KIND_TO_TYPE[args.kind]!] } : undefined;
+  const filter = kindFilter(args.kind);
   const req = SearchRequestSchema.parse({
     query: { text: args.query, ...(filter ? { filter } : {}) },
     federation: args.federation,
@@ -56,14 +46,8 @@ async function runSearch(args: Args): Promise<SearchResponse> {
     return (await res.json()) as SearchResponse;
   }
 
-  const config = loadConfig();
-  const store = await buildStoreFromDir(config.catalogDir);
-  const search = new SearchService(store, new Bm25Ranker(), { selfUrl: config.selfUrl });
-  const federation = new FederationService(search, {
-    selfUrl: config.selfUrl,
-    upstreams: config.upstreams,
-  });
-  return federation.search(req);
+  const { federationService } = await createServices();
+  return federationService.search(req);
 }
 
 function render(res: SearchResponse, args: Args): void {

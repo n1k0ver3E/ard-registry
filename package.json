@@ -9,7 +9,8 @@
     "node": ">=20"
   },
   "bin": {
-    "ard-search": "bin/ard-search.ts"
+    "ard-search": "bin/ard-search.ts",
+    "ard-mcp": "bin/ard-mcp.ts"
   },
   "scripts": {
     "start": "tsx src/main.ts",
@@ -18,11 +19,13 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "discover": "tsx bin/ard-search.ts",
+    "mcp": "tsx bin/ard-mcp.ts",
     "verify:manifest": "tsx scripts/verify-manifests.ts",
     "verify:registry": "tsx scripts/verify-registry.ts",
     "verify": "pnpm typecheck && pnpm test && pnpm verify:manifest && pnpm verify:registry"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "fastify": "^5.2.0",
     "zod": "^3.24.1"
   },

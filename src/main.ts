@@ -1,39 +1,18 @@
-import { loadConfig } from './config.js';
-import { buildStoreFromDir } from './index/build-store.js';
-import { Bm25Ranker } from './index/ranker.js';
-import { SearchService } from './search/search.service.js';
-import { FederationService } from './search/federation.service.js';
-import { ExploreService } from './search/explore.service.js';
-import { AgentsService } from './search/agents.service.js';
 import { buildServer } from './http/server.js';
-import { buildSelfCatalog } from './discovery/self-catalog.js';
+import { createServices } from './services.js';
 
-/** Wire config -> store -> services -> server. Exported for tests (no listen). */
+/** Wire services -> HTTP server. Exported for tests (no listen). */
 export async function createApp(env = process.env) {
-  const config = loadConfig(env);
-  const store = await buildStoreFromDir(config.catalogDir);
-  const ranker = new Bm25Ranker();
-
-  const searchService = new SearchService(store, ranker, { selfUrl: config.selfUrl });
-  const federationService = new FederationService(searchService, {
-    selfUrl: config.selfUrl,
-    upstreams: config.upstreams,
-  });
-  const exploreService = new ExploreService(store, ranker);
-  const agentsService = new AgentsService(store, config.selfUrl);
-  const selfManifest = buildSelfCatalog({
-    publisher: config.publisher,
-    selfUrl: config.selfUrl,
-    entryCount: store.size,
-  });
+  const services = await createServices(env);
+  const { config, store } = services;
 
   const app = buildServer({
     basePath: config.basePath,
     entryCount: store.size,
-    federationService,
-    exploreService,
-    agentsService,
-    selfManifest,
+    federationService: services.federationService,
+    exploreService: services.exploreService,
+    agentsService: services.agentsService,
+    selfManifest: services.selfManifest,
   });
   return { app, config, store };
 }
