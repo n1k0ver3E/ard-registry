@@ -50,15 +50,18 @@ bin/ard-search.ts   natural-language discovery CLI
 two sub-skills, and the **Cookiy CLI** — 9 entries total.
 
 ```
-$ pnpm search "I have interview transcripts and need to synthesize a report" --limit 3
+$ pnpm discover "I have interview transcripts and need to synthesize a report" --limit 3
 
    1. [██████████ 100] User Research (End to End) Skill          urn:air:cookiy.ai:skill:user-research
    2. [██████████  99] Synthesize Research Report (sub-skill)    urn:air:cookiy.ai:skill:synthesize-research-report
    3. [███░░░░░░░  33] Cookiy Report & Insights MCP              urn:air:cookiy.ai:mcp:report-and-insights
 
-$ pnpm search "plan a study and write a screening questionnaire" --kind skill
-$ pnpm search "recruit participants and run interviews" --federation referrals
+$ pnpm discover "plan a study and write a screening questionnaire" --kind skill
+$ pnpm discover "recruit participants and run interviews" --federation referrals
 ```
+
+> Use `pnpm discover` — **not** `pnpm search`. `search` is a built-in pnpm command that
+> queries the npm registry and would just print `No matches found`. `pnpm run discover` also works.
 
 ## Verification (real, not smoke)
 
@@ -81,8 +84,8 @@ Tests include live federation across two real registries (real HTTP auto-merge).
 
 ```bash
 pnpm install
-pnpm start                      # registry on http://localhost:9010/api
-pnpm search "run AI-moderated interviews and synthesize a report"
+pnpm start                         # registry on http://localhost:9010/api
+pnpm discover "run AI-moderated interviews and synthesize a report"   # in-process CLI search
 ```
 
 ## Roadmap
