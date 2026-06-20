@@ -1,0 +1,40 @@
+{
+  "name": "ard-registry",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "An ard-spec v0.9 conformant Agentic Resource Discovery (ARD) registry server in TypeScript. Crawls ai-catalog.json manifests, indexes them, and exposes POST /search, POST /explore, GET /agents.",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "ard-search": "bin/ard-search.ts"
+  },
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "search": "tsx bin/ard-search.ts",
+    "verify:manifest": "tsx scripts/verify-manifests.ts",
+    "verify:registry": "tsx scripts/verify-registry.ts",
+    "verify": "pnpm typecheck && pnpm test && pnpm verify:manifest && pnpm verify:registry"
+  },
+  "dependencies": {
+    "fastify": "^5.2.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}
