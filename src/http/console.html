@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ard-registry console</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --panel2: #1e222b; --line: #2a2f3a;
+    --txt: #e6e9ef; --mut: #9aa3b2; --accent: #5dcaa5; --accent2: #378add;
+    --amber: #ef9f27; --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--txt);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  a { color: var(--accent2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header { padding: 20px 24px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 18px; letter-spacing: .2px; }
+  header .sub { color: var(--mut); font-size: 13px; }
+  header .stats { margin-left: auto; color: var(--mut); font-size: 12px; }
+  header .stats b { color: var(--accent); }
+  main { max-width: 980px; margin: 0 auto; padding: 20px 24px 60px; }
+  nav { display: flex; gap: 4px; margin-bottom: 18px; }
+  nav button { background: transparent; border: 1px solid transparent; color: var(--mut);
+    padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+  nav button.active { color: var(--txt); background: var(--panel2); border-color: var(--line); }
+  .searchbar { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .searchbar input[type=text] { flex: 1; min-width: 240px; background: var(--panel);
+    border: 1px solid var(--line); color: var(--txt); padding: 11px 14px; border-radius: 10px; font-size: 14px; }
+  select, .btn { background: var(--panel); border: 1px solid var(--line); color: var(--txt);
+    padding: 10px 12px; border-radius: 10px; cursor: pointer; font-size: 13px; }
+  .btn.primary { background: var(--accent); color: #04342c; border-color: var(--accent); font-weight: 600; }
+  .hint { color: var(--mut); font-size: 12px; margin: 4px 0 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 14px 16px; margin-bottom: 12px; }
+  .card .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .card .name { font-weight: 600; font-size: 15px; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line);
+    color: var(--mut); white-space: nowrap; }
+  .badge.type { color: var(--accent2); border-color: #21405f; background: #0d2236; }
+  .badge.score { color: #04342c; background: var(--accent); border-color: var(--accent); font-weight: 700; }
+  .badge.pub { color: var(--amber); border-color: #50390a; background: #2a1f08; }
+  .card .id { color: var(--mut); font-size: 12px; margin: 6px 0; word-break: break-all; }
+  .card .desc { color: var(--txt); font-size: 13px; margin: 4px 0 8px; }
+  .caps { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+  .cap { font-size: 11px; background: var(--panel2); border: 1px solid var(--line);
+    border-radius: 6px; padding: 1px 7px; color: var(--mut); }
+  .card .actions { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+  .card .url { color: var(--mut); font-size: 12px; word-break: break-all; flex: 1; min-width: 160px; }
+  .mini { font-size: 12px; padding: 5px 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--mut); font-weight: 500; }
+  .ok { color: var(--accent); } .bad { color: #e57373; }
+  .ep { display: flex; gap: 10px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .method { font-weight: 700; font-size: 12px; width: 48px; }
+  .method.get { color: var(--accent); } .method.post { color: var(--amber); }
+  .ep .path { font-size: 13px; } .ep .s { color: var(--mut); font-size: 12px; margin-left: auto; }
+  .empty { color: var(--mut); padding: 24px; text-align: center; }
+  .filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🛰 ard-registry</h1>
+  <span class="sub">self-hosted Agentic Resource Discovery console</span>
+  <span class="stats" id="stats">…</span>
+</header>
+<main>
+  <nav>
+    <button data-tab="discover" class="active">Discover</button>
+    <button data-tab="browse">Browse all</button>
+    <button data-tab="sources">Sources</button>
+    <button data-tab="api">API</button>
+  </nav>
+
+  <section id="tab-discover">
+    <div class="searchbar">
+      <input type="text" id="q" placeholder="What capability do you need? e.g. recruit participants and run interviews" />
+      <select id="kind">
+        <option value="">any kind</option>
+        <option value="mcp">mcp</option>
+        <option value="skill">skill</option>
+        <option value="cli">cli</option>
+        <option value="agent">agent</option>
+      </select>
+      <select id="federation">
+        <option value="none">local</option>
+        <option value="referrals">+ referrals</option>
+        <option value="auto">+ federate (auto)</option>
+      </select>
+      <button class="btn primary" id="go">Discover</button>
+    </div>
+    <div class="hint">Ranked by relevance. Pick one, verify its trust, then call it via the <code>type</code> + <code>invoke-via</code> url.</div>
+    <div id="results"></div>
+  </section>
+
+  <section id="tab-browse" hidden>
+    <div class="filters">
+      <input type="text" id="bfilter" placeholder="filter by name / id / tag…" style="flex:1;min-width:200px;background:var(--panel);border:1px solid var(--line);color:var(--txt);padding:9px 12px;border-radius:10px" />
+      <select id="btype"><option value="">all types</option></select>
+      <select id="bpub"><option value="">all publishers</option></select>
+    </div>
+    <div id="browse"></div>
+  </section>
+
+  <section id="tab-sources" hidden>
+    <table id="sources"><thead><tr><th>source</th><th>status</th><th>entries</th><th>last crawl</th><th>url</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section id="tab-api" hidden>
+    <div class="hint">Machine-readable spec: <a id="oalink" href="#" target="_blank">openapi.json</a> — feed it to Swagger / Postman / codegen.</div>
+    <div id="endpoints"></div>
+  </section>
+</main>
+
+<script>
+const BASE = "__BASE__";
+const $ = (s, r=document) => r.querySelector(s);
+const el = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h!=null) e.innerHTML = h; return e; };
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pub = (id) => { const m = /^urn:ai[r]?:([a-zA-Z0-9.-]+):/.exec(id||""); return m ? m[1] : ""; };
+
+function tabs() {
+  document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('nav button').forEach(x => x.classList.toggle('active', x===b));
+    ['discover','browse','sources','api'].forEach(t => $('#tab-'+t).hidden = (t !== b.dataset.tab));
+    if (b.dataset.tab === 'browse') loadBrowse();
+    if (b.dataset.tab === 'sources') loadSources();
+    if (b.dataset.tab === 'api') loadApi();
+  });
+}
+
+function card(r, withScore) {
+  const c = el('div', 'card');
+  const top = el('div', 'top');
+  top.appendChild(el('span', 'name', esc(r.displayName)));
+  if (withScore && r.score != null) top.appendChild(el('span', 'badge score', r.score));
+  top.appendChild(el('span', 'badge type', esc(r.type)));
+  if (pub(r.identifier)) top.appendChild(el('span', 'badge pub', esc(pub(r.identifier))));
+  c.appendChild(top);
+  c.appendChild(el('div', 'id mono', esc(r.identifier)));
+  if (r.description) c.appendChild(el('div', 'desc', esc(r.description)));
+  if (r.capabilities && r.capabilities.length) {
+    const caps = el('div', 'caps');
+    r.capabilities.slice(0, 8).forEach(x => caps.appendChild(el('span', 'cap', esc(x))));
+    c.appendChild(caps);
+  }
+  const target = r.url || '(inline data)';
+  const act = el('div', 'actions');
+  act.appendChild(el('span', 'url mono', '→ ' + esc(target)));
+  if (r.url) {
+    const open = el('a', 'btn mini'); open.textContent = 'Open'; open.href = r.url; open.target = '_blank';
+    act.appendChild(open);
+  }
+  const copy = el('button', 'btn mini'); copy.textContent = 'Copy invoke';
+  copy.onclick = () => { navigator.clipboard.writeText(r.url || r.identifier); copy.textContent = 'Copied ✓';
+    setTimeout(() => copy.textContent = 'Copy invoke', 1200); };
+  act.appendChild(copy);
+  c.appendChild(act);
+  return c;
+}
+
+async function discover() {
+  const text = $('#q').value.trim();
+  if (!text) return;
+  const kind = $('#kind').value, federation = $('#federation').value;
+  const filter = kind ? { type: [{mcp:'application/mcp-server-card+json',skill:'text/markdown; profile="urn:air:agent-skills"',cli:'application/x-cli+json',agent:'application/a2a-agent-card+json'}[kind]] } : undefined;
+  const body = { query: { text, ...(filter ? { filter } : {}) }, federation, pageSize: 12 };
+  const res = await fetch(BASE + '/search', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify(body) });
+  const data = await res.json();
+  const out = $('#results'); out.innerHTML = '';
+  if (!data.results.length) { out.appendChild(el('div', 'empty', 'No matching resources.')); return; }
+  data.results.forEach(r => out.appendChild(card(r, true)));
+  if (data.referrals && data.referrals.length) {
+    const ref = el('div', 'hint', '↪ federated registries: ' + data.referrals.map(x => esc(x.displayName) + ' (' + esc(x.url) + ')').join(', '));
+    out.appendChild(ref);
+  }
+}
+
+let ALL = [];
+async function loadBrowse() {
+  if (!ALL.length) {
+    const data = await (await fetch(BASE + '/agents?pageSize=100')).json();
+    ALL = data.items || [];
+    const types = [...new Set(ALL.map(r => r.type))].sort();
+    const pubs = [...new Set(ALL.map(r => pub(r.identifier)).filter(Boolean))].sort();
+    types.forEach(t => $('#btype').appendChild(el('option', null, esc(t))) && ($('#btype').lastChild.value = t));
+    pubs.forEach(p => { const o = el('option', null, esc(p)); o.value = p; $('#bpub').appendChild(o); });
+  }
+  renderBrowse();
+}
+function renderBrowse() {
+  const f = $('#bfilter').value.toLowerCase(), t = $('#btype').value, p = $('#bpub').value;
+  const out = $('#browse'); out.innerHTML = '';
+  const rows = ALL.filter(r =>
+    (!t || r.type === t) && (!p || pub(r.identifier) === p) &&
+    (!f || (r.displayName + ' ' + r.identifier + ' ' + (r.tags||[]).join(' ')).toLowerCase().includes(f)));
+  $('#stats').innerHTML = 'index: <b>' + ALL.length + '</b> resources';
+  if (!rows.length) { out.appendChild(el('div', 'empty', 'Nothing matches.')); return; }
+  rows.forEach(r => out.appendChild(card(r, false)));
+}
+
+async function loadSources() {
+  const data = await (await fetch(BASE + '/sources')).json();
+  const tb = $('#sources tbody'); tb.innerHTML = '';
+  data.sources.forEach(s => {
+    const tr = el('tr');
+    tr.innerHTML = '<td>' + esc(s.id) + '</td>' +
+      '<td class="' + (s.ok?'ok':'bad') + '">' + (s.ok?'✓ ok':'✗ ' + esc(s.error||'fail')) + '</td>' +
+      '<td>' + s.entryCount + '</td><td class="mono">' + esc(s.lastCrawlAt||'—') + '</td>' +
+      '<td class="mono">' + esc(s.url) + '</td>';
+    tb.appendChild(tr);
+  });
+}
+
+async function loadApi() {
+  $('#oalink').href = BASE + '/openapi.json';
+  const doc = await (await fetch(BASE + '/openapi.json')).json();
+  const out = $('#endpoints'); out.innerHTML = '';
+  for (const [path, ops] of Object.entries(doc.paths)) {
+    for (const [method, op] of Object.entries(ops)) {
+      const row = el('div', 'ep');
+      row.innerHTML = '<span class="method ' + method + '">' + method.toUpperCase() + '</span>' +
+        '<span class="path mono">' + esc(path) + '</span><span class="s">' + esc(op.summary||'') + '</span>';
+      out.appendChild(row);
+    }
+  }
+}
+
+async function init() {
+  tabs();
+  $('#go').onclick = discover;
+  $('#q').addEventListener('keydown', e => { if (e.key === 'Enter') discover(); });
+  ['#bfilter','#btype','#bpub'].forEach(s => $(s).addEventListener('input', renderBrowse));
+  try {
+    const h = await (await fetch(BASE + '/health')).json();
+    const s = await (await fetch(BASE + '/sources')).json();
+    $('#stats').innerHTML = 'index: <b>' + h.entries + '</b> resources · <b>' + s.count + '</b> sources';
+  } catch (e) { $('#stats').textContent = 'offline'; }
+}
+init();
+</script>
+</body>
+</html>

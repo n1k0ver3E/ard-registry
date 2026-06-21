@@ -54,7 +54,17 @@ export class Crawler {
     this.store.replaceAll(snap.entries);
     for (const s of this.sources) {
       const owned = snap.entries.filter((e) => e.origin === s.url);
-      if (owned.length) this.lastGood.set(s.id, owned);
+      if (owned.length) {
+        this.lastGood.set(s.id, owned);
+        // Reflect snapshot counts in status so /sources isn't blank before a re-crawl.
+        this.status.set(s.id, {
+          id: s.id,
+          url: s.url,
+          ok: true,
+          entryCount: owned.length,
+          lastCrawlAt: snap.crawledAt,
+        });
+      }
     }
     return true;
   }

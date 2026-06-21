@@ -101,6 +101,24 @@ describe('HTTP registry (Fastify inject)', () => {
     expect(body.entries[0].url).toContain('/search');
   });
 
+  it('serves the Web console HTML at /', async () => {
+    const res = await app.inject({ method: 'GET', url: '/' });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toContain('text/html');
+    expect(res.body).toContain('ard-registry');
+    expect(res.body).toContain(`const BASE = "${base}"`); // __BASE__ placeholder wired in
+    expect(res.body).not.toContain('__BASE__');
+  });
+
+  it('serves an OpenAPI 3.1 document derived from the zod schemas', async () => {
+    const res = await app.inject({ method: 'GET', url: `${base}/openapi.json` });
+    expect(res.statusCode).toBe(200);
+    const doc = res.json();
+    expect(doc.openapi).toBe('3.1.0');
+    expect(doc.paths).toHaveProperty(`${base}/search`);
+    expect(doc.paths[`${base}/search`].post.requestBody.content['application/json'].schema).toBeTruthy();
+  });
+
   it('GET /sources reports per-source crawl status', async () => {
     const res = await app.inject({ method: 'GET', url: `${base}/sources` });
     expect(res.statusCode).toBe(200);

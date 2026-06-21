@@ -21,6 +21,8 @@ client  ──POST /search { text, filter }──▶  registry  ──crawls─�
 | `POST /api/explore` | optional | facet aggregation (counts by `type` / `publisher` / `tags`) |
 | `GET /api/agents` | optional | deterministic, cacheable listing with `orderBy` + pagination |
 | `GET /api/sources` | mgmt | per-source crawl status (last crawl, ok, entry counts) |
+| `GET /api/openapi.json` | docs | OpenAPI 3.1 spec, derived from the zod schemas (feed to Swagger/Postman/codegen) |
+| `GET /` (and `/ui`) | console | self-hosted Web console — browse all resources, search, sources, one-click invoke |
 | `GET /.well-known/ai-catalog.json` | self | advertises this registry as an `application/ai-registry+json` resource — it is itself discoverable & federatable |
 
 `score` is **relevance only** — never a trust/safety rating (per spec). Filters compose **AND across keys, OR within values**.
@@ -55,7 +57,7 @@ src/
   discovery/   self-catalog (this registry's own /.well-known manifest)
   mcp/         MCP discovery tools (discover/explore) over a local or remote backend
   services.ts  createServices = the one composition root reused by HTTP, CLI, MCP
-  http/        Fastify server — validates input, serializes output, nothing else
+  http/        Fastify server · openapi (zod→OpenAPI 3.1) · console.html (zero-dep Web UI)
   config.ts · main.ts (createApp wires it all)
 catalogs/      test-case data: real Cookiy resources as ARD manifests
 bin/ard-search.ts · bin/ard-mcp.ts   CLI + MCP entrypoints
@@ -109,13 +111,13 @@ $ pnpm discover "recruit participants and run interviews" --federation referrals
 Verified against the **official ard-spec conformance CLI** (vendored under `vendor/`), plus unit + HTTP e2e tests:
 
 ```bash
-pnpm verify           # typecheck + 36 tests + both conformance suites
+pnpm verify           # typecheck + 38 tests + both conformance suites
 pnpm verify:manifest  # conformance-test manifest catalogs/*.json   → 3/3 PASS
 pnpm verify:registry  # boots the server, conformance-test registry → PASS, plus
                       # conformance-test manifest on the LIVE /.well-known URL → PASS
 ```
 
-Current status: **typecheck clean · 36/36 tests · 3/3 manifests PASS · registry PASS · live self-manifest PASS (0 errors)**.
+Current status: **typecheck clean · 38/38 tests · 3/3 manifests PASS · registry PASS · live self-manifest PASS (0 errors)**.
 Tests include live federation across two real registries (real HTTP auto-merge) and a real MCP-protocol
 round-trip (SDK client ↔ our server).
 
@@ -126,9 +128,10 @@ round-trip (SDK client ↔ our server).
 
 ```bash
 pnpm install
-pnpm start                         # REST registry on http://localhost:9010/api
+pnpm start                         # REST registry + Web console on http://localhost:9010
 pnpm discover "run AI-moderated interviews and synthesize a report"   # CLI search
 pnpm mcp                           # MCP server over stdio (discover/explore tools)
+# then open http://localhost:9010 for the console (browse · search · sources · API · one-click invoke)
 ```
 
 Add it to an MCP client (e.g. Claude Code) so an agent can discover at runtime:

@@ -9,6 +9,7 @@ export async function createApp(env = process.env) {
   const app = buildServer({
     basePath: config.basePath,
     entryCount: store.size,
+    selfUrl: config.selfUrl,
     federationService: services.federationService,
     exploreService: services.exploreService,
     agentsService: services.agentsService,
@@ -20,8 +21,9 @@ export async function createApp(env = process.env) {
 
 async function main(): Promise<void> {
   const { app, config, store, crawler } = await createApp();
-  // Keep the index fresh: re-crawl all sources on the configured interval.
+  // Refresh shortly after boot (in case we served a stale snapshot), then on interval.
   crawler.schedule(config.crawlIntervalMs);
+  void crawler.crawlOnce().catch(() => {});
   await app.listen({ host: config.host, port: config.port });
   // eslint-disable-next-line no-console
   console.log(
