@@ -10,10 +10,11 @@
     --txt: #e6e9ef; --mut: #9aa3b2; --accent: #5dcaa5; --accent2: #378add;
     --amber: #ef9f27; --radius: 12px;
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; min-width: 0; }
+  html, body { max-width: 100%; overflow-x: hidden; }
   body { margin: 0; background: var(--bg); color: var(--txt);
     font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif; }
-  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
   a { color: var(--accent2); text-decoration: none; }
   a:hover { text-decoration: underline; }
   header { padding: 20px 24px; border-bottom: 1px solid var(--line);
@@ -28,7 +29,7 @@
     padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; }
   nav button.active { color: var(--txt); background: var(--panel2); border-color: var(--line); }
   .searchbar { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-  .searchbar input[type=text] { flex: 1; min-width: 240px; background: var(--panel);
+  .searchbar input[type=text] { flex: 1 1 180px; background: var(--panel);
     border: 1px solid var(--line); color: var(--txt); padding: 11px 14px; border-radius: 10px; font-size: 14px; }
   select, .btn { background: var(--panel); border: 1px solid var(--line); color: var(--txt);
     padding: 10px 12px; border-radius: 10px; cursor: pointer; font-size: 13px; }
@@ -49,10 +50,11 @@
   .cap { font-size: 11px; background: var(--panel2); border: 1px solid var(--line);
     border-radius: 6px; padding: 1px 7px; color: var(--mut); }
   .card .actions { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
-  .card .url { color: var(--mut); font-size: 12px; word-break: break-all; flex: 1; min-width: 160px; }
+  .card .url { color: var(--mut); font-size: 12px; word-break: break-all; flex: 1 1 140px; }
   .mini { font-size: 12px; padding: 5px 10px; }
+  .tablewrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); word-break: break-word; }
   th { color: var(--mut); font-weight: 500; }
   .ok { color: var(--accent); } .bad { color: #e57373; }
   .ep { display: flex; gap: 10px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--line); }
@@ -61,6 +63,16 @@
   .ep .path { font-size: 13px; } .ep .s { color: var(--mut); font-size: 12px; margin-left: auto; }
   .empty { color: var(--mut); padding: 24px; text-align: center; }
   .filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filters input, .filters select { flex: 1 1 140px; }
+  @media (max-width: 680px) {
+    header { padding: 14px 16px; gap: 8px 14px; }
+    header .stats { margin-left: 0; flex-basis: 100%; }
+    main { padding: 16px 16px 50px; }
+    nav { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    nav button { white-space: nowrap; }
+    .searchbar .btn.primary { flex: 1 1 100%; }
+    .ep .s { margin-left: 0; flex-basis: 100%; }
+  }
 </style>
 </head>
 <body>
@@ -100,7 +112,7 @@
 
   <section id="tab-browse" hidden>
     <div class="filters">
-      <input type="text" id="bfilter" placeholder="filter by name / id / tag…" style="flex:1;min-width:200px;background:var(--panel);border:1px solid var(--line);color:var(--txt);padding:9px 12px;border-radius:10px" />
+      <input type="text" id="bfilter" placeholder="filter by name / id / tag…" style="flex:1 1 160px;background:var(--panel);border:1px solid var(--line);color:var(--txt);padding:9px 12px;border-radius:10px" />
       <select id="btype"><option value="">all types</option></select>
       <select id="bpub"><option value="">all publishers</option></select>
     </div>
@@ -108,7 +120,9 @@
   </section>
 
   <section id="tab-sources" hidden>
-    <table id="sources"><thead><tr><th>source</th><th>status</th><th>entries</th><th>last crawl</th><th>url</th></tr></thead><tbody></tbody></table>
+    <div class="tablewrap">
+      <table id="sources"><thead><tr><th>source</th><th>status</th><th>entries</th><th>last crawl</th><th>url</th></tr></thead><tbody></tbody></table>
+    </div>
   </section>
 
   <section id="tab-api" hidden>
