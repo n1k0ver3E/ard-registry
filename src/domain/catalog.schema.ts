@@ -114,14 +114,19 @@ export const STANDARD_MEDIA_TYPES = [
 /** Media type that marks an entry as a nested sub-catalog to be flattened. */
 export const NESTED_CATALOG_TYPE = 'application/ai-catalog+json';
 
-/** Parse the three URN segments (publisher, namespace, name) from an identifier. */
+/**
+ * Parse the three URN segments (publisher, namespace, name) from an identifier.
+ * Accepts the spec NID `air` and the wild `ai` (e.g. Hugging Face publishes
+ * `urn:ai:huggingface.co:...`), so publisher facets/filters work across crawled
+ * third-party manifests too.
+ */
 export function parseUrn(
   identifier: string,
 ): { publisher: string; namespace: string; name: string } | null {
-  const m = /^urn:air:([a-zA-Z0-9.-]+):([a-zA-Z0-9._:-]+):([a-zA-Z0-9._-]+)$/.exec(identifier);
+  const m = /^urn:ai(?:r)?:([a-zA-Z0-9.-]+):([a-zA-Z0-9._:-]+):([a-zA-Z0-9._-]+)$/.exec(identifier);
   if (!m) {
-    // Fall back to a 2-segment form urn:air:<publisher>:<name>
-    const m2 = /^urn:air:([a-zA-Z0-9.-]+):([a-zA-Z0-9._-]+)$/.exec(identifier);
+    // Fall back to a 2-segment form urn:ai[r]:<publisher>:<name>
+    const m2 = /^urn:ai(?:r)?:([a-zA-Z0-9.-]+):([a-zA-Z0-9._-]+)$/.exec(identifier);
     if (!m2) return null;
     return { publisher: m2[1]!, namespace: '', name: m2[2]! };
   }

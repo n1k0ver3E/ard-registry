@@ -6,6 +6,7 @@ import { writeFile, rm } from 'node:fs/promises';
 import { CatalogStore } from '../src/index/catalog-store.js';
 import { Crawler } from '../src/crawl/crawler.js';
 import { FileSnapshotStore } from '../src/crawl/snapshot.js';
+import { parseUrn } from '../src/domain/catalog.schema.js';
 
 const here = resolve(fileURLToPath(import.meta.url), '..');
 const cat = (f: string) => resolve(here, `../catalogs/${f}.ai-catalog.json`);
@@ -37,6 +38,8 @@ describe('Crawler', () => {
     expect(ids).toContain('urn:ai:huggingface.co:registry:discover'); // non-urn:air still indexed
     expect(ids).not.toContain('urn:air:bad.example:x:y'); // no url/data → skipped, not fatal
     expect(store.size).toBe(1);
+    // publisher is still extractable from the wild `urn:ai:` form (HF-style)
+    expect(parseUrn('urn:ai:huggingface.co:registry:discover')?.publisher).toBe('huggingface.co');
   });
 
   it('replaceAll drops entries a source no longer advertises', async () => {
