@@ -4,11 +4,11 @@ import { CatalogStore } from '../src/index/catalog-store.js';
 import { loadManifest } from '../src/ingest/manifest-loader.js';
 
 const here = resolve(fileURLToPath(import.meta.url), '..');
-export const CATALOG_FILES = ['cookiy-mcp', 'cookiy-skill', 'cookiy-cli'].map((f) =>
+export const CATALOG_FILES = ['cookiy-mcp', 'cookiy-skill', 'cookiy-cli', 'hermes-tweet'].map((f) =>
   resolve(here, `../catalogs/${f}.ai-catalog.json`),
 );
 
-/** Build a CatalogStore loaded with all real cookiy catalogs (9 entries). */
+/** Build a CatalogStore loaded with all local catalogs (10 entries). */
 export async function buildStore(): Promise<CatalogStore> {
   const store = new CatalogStore();
   for (const file of CATALOG_FILES) {
