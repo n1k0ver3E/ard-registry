@@ -83,14 +83,14 @@ spec's `urn:air:`, so non-conforming ids/types become warnings, unusable entries
 still indexed.
 
 ```bash
-pnpm verify:crawl   # live: crawls cookiy catalogs + HF's PUBLIC manifest, proves HF resources are discoverable
+pnpm verify:crawl   # live: crawls local catalogs + HF's PUBLIC manifest, proves HF resources are discoverable
 ```
 
-## Test case: Cookiy (real data)
+## Test case: Cookiy + Hermes Tweet (real data)
 
-`catalogs/` catalogs genuine Cookiy resources, so the registry is exercised against real signal — all
+`catalogs/` catalogs genuine Cookiy and Hermes Tweet resources, so the registry is exercised against real signal - all
 **32 `cookiy_*` MCP tools** (grouped into 5 MCP server cards by domain), the **`user-research` Skill** plus its
-two sub-skills, and the **Cookiy CLI** — 9 entries total.
+two sub-skills, the **Cookiy CLI**, and the **Hermes Tweet skill** - 10 entries total.
 
 ```
 $ pnpm discover "I have interview transcripts and need to synthesize a report" --limit 3
@@ -112,12 +112,12 @@ Verified against the **official ard-spec conformance CLI** (vendored under `vend
 
 ```bash
 pnpm verify           # typecheck + 38 tests + both conformance suites
-pnpm verify:manifest  # conformance-test manifest catalogs/*.json   → 3/3 PASS
+pnpm verify:manifest  # conformance-test manifest catalogs/*.json   → 4/4 PASS
 pnpm verify:registry  # boots the server, conformance-test registry → PASS, plus
                       # conformance-test manifest on the LIVE /.well-known URL → PASS
 ```
 
-Current status: **typecheck clean · 38/38 tests · 3/3 manifests PASS · registry PASS · live self-manifest PASS (0 errors)**.
+Current status: **typecheck clean · 38/38 tests · 4/4 manifests PASS · registry PASS · live self-manifest PASS (0 errors)**.
 Tests include live federation across two real registries (real HTTP auto-merge) and a real MCP-protocol
 round-trip (SDK client ↔ our server).
 

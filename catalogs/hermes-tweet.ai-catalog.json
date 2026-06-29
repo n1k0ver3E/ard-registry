@@ -1,0 +1,35 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Hermes Tweet",
+    "identifier": "did:web:xquik.com",
+    "documentationUrl": "https://github.com/Xquik-dev/hermes-tweet"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:xquik.com:skill:hermes-tweet",
+      "displayName": "Hermes Tweet Skill",
+      "type": "text/markdown; profile=\"urn:air:agent-skills\"",
+      "url": "https://raw.githubusercontent.com/Xquik-dev/hermes-tweet/master/skills/hermes-tweet/SKILL.md",
+      "description": "A Hermes Agent skill for researching X/Twitter conversations, reading public tweet context, drafting posts, and running explicitly gated posting actions.",
+      "capabilities": [
+        "x-twitter-research",
+        "tweet-context-reading",
+        "post-drafting",
+        "gated-social-actions"
+      ],
+      "representativeQueries": [
+        "research recent X posts about a product launch",
+        "summarize public tweet context before I reply",
+        "draft a concise X post for an announcement",
+        "prepare a gated social action through Hermes Agent"
+      ],
+      "tags": ["skill", "hermes-agent", "x-twitter", "social", "research"],
+      "version": "0.1.6",
+      "trustManifest": {
+        "identity": "did:web:xquik.com",
+        "identityType": "did"
+      }
+    }
+  ]
+}

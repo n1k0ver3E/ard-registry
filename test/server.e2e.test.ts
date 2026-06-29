@@ -82,8 +82,9 @@ describe('HTTP registry (Fastify inject)', () => {
   it('GET /agents lists all indexed entries with pagination', async () => {
     const all = await app.inject({ method: 'GET', url: `${base}/agents` });
     expect(all.statusCode).toBe(200);
-    expect(all.json().total).toBe(9);
-    expect(all.json().items).toHaveLength(9);
+    expect(all.json().total).toBe(10);
+    expect(all.json().items).toHaveLength(10);
+    expect(all.json().items.some((item: { identifier: string }) => item.identifier === 'urn:air:xquik.com:skill:hermes-tweet')).toBe(true);
 
     const page = await app.inject({ method: 'GET', url: `${base}/agents?pageSize=2` });
     expect(page.json().items).toHaveLength(2);
@@ -123,9 +124,10 @@ describe('HTTP registry (Fastify inject)', () => {
     const res = await app.inject({ method: 'GET', url: `${base}/sources` });
     expect(res.statusCode).toBe(200);
     const body = res.json();
-    expect(body.count).toBe(3); // 3 local cookiy catalogs (default source set)
+    expect(body.count).toBe(4); // 4 local catalogs (default source set)
     expect(body.sources.every((s: { ok: boolean }) => s.ok)).toBe(true);
     expect(body.sources.map((s: { id: string }) => s.id)).toContain('cookiy-mcp');
+    expect(body.sources.map((s: { id: string }) => s.id)).toContain('hermes-tweet');
   });
 
   it('unknown route returns 404 NOT_FOUND', async () => {
